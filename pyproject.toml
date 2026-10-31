@@ -1,0 +1,21 @@
+[project]
+name = "foxcloud-pi-dashboard"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ben Dyer", email = "ben.dyer@hey.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pyresilience>=0.4.1",
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+foxcloud-pi-dashboard = "foxcloud_pi_dashboard.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14.0"]
+build-backend = "uv_build"
