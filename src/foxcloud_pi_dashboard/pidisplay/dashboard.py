@@ -20,6 +20,8 @@ LED_GREEN_COLOUR = (0.0, 1.0, 0.0)
 LED_RED_COLOUR = (1.0, 0.0, 0.0)
 LED_AMBER_COLOUR = (1.0, 0.05, 0.0)
 LED_OFF = (0.0, 0.0, 0.0)
+BACKLIGHT_ON = 1.0
+BACKLIGHT_OFF = 0.0
 
 
 class Dashboard:
@@ -74,11 +76,15 @@ class Dashboard:
         else:
             self.display.set_led(*LED_RED_COLOUR)
 
+    def standby(self):
+        self.display.set_backlight(BACKLIGHT_OFF)
+        self.display.set_led(*LED_OFF)
+
     def update_dashboard(self, inverter_data):
 
         values = {item["variable"]: item["value"] for item in inverter_data}
         self._set_inverter_data(values)
-        self.display.set_backlight(1.0)
+        self.display.set_backlight(BACKLIGHT_ON)
 
         image = Image.new("RGB", (DisplayHATMini.WIDTH, DisplayHATMini.HEIGHT), "black")
         draw = ImageDraw.Draw(image)
