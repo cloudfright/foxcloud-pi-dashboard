@@ -16,9 +16,12 @@ GRID_EXPORT_THRESHOLD = 0.2
 BAT_DISCHARGE_THRESHOLD = 0.1
 BAT_CHARGE_THRESHOLD = 0.1
 SOLAR_THRESHOLD = 0.7
-LED_GREEN_COLOUR = (0.0, 1.0, 0.0)
-LED_RED_COLOUR = (1.0, 0.0, 0.0)
-LED_AMBER_COLOUR = (1.0, 0.05, 0.0)
+
+# low values to reduce brightness of the LEDs
+LED_GREEN_COLOUR = (0.0, 0.05, 0.0)
+LED_RED_COLOUR = (0.05, 0.0, 0.0)
+LED_AMBER_COLOUR = (0.05, 0.005, 0.0)
+
 LED_OFF = (0.0, 0.0, 0.0)
 BACKLIGHT_ON = 1.0
 BACKLIGHT_OFF = 0.0
@@ -38,15 +41,6 @@ class Dashboard:
     def _get_self_use_percent(self):
         return ((self.pv_power + self.bat_discharge_power - self.feedin_power) / self.loads_power) * 100
         
-    def _get_self_use_font_colour(self):
-        self_use_percent = self._get_self_use_percent()
-        if self_use_percent > 90:
-            return FONT_VALUE_GREEN_COLOUR
-        elif self_use_percent > 40:
-            return FONT_VALUE_AMBER_COLOUR
-        else:
-            return FONT_VALUE_RED_COLOUR
-
     def _set_inverter_data(self, values):
         self.pv_power = values.get("pvPower")
         self.bat_charge_power = values.get("batChargePower")
@@ -58,7 +52,6 @@ class Dashboard:
 
         print("Inverter data set:", values)
         print("Self-use percent:", self._get_self_use_percent())
-
 
 
     def _draw_background(self, draw):
@@ -98,35 +91,76 @@ class Dashboard:
         time.sleep(0.1)
 
         self._set_led_colour()
-        value_font_colour = self._get_self_use_font_colour()
 
+        ######################################################
         # upper left quadrant show house load   
+        ######################################################
+      
+        if self.grid_consumption_power < GRID_CONSUMPTION_THRESHOLD:
+            home_load_text_colour = FONT_VALUE_GREEN_COLOUR  # green if using no grid
+        elif self.grid_consumption_power > GRID_CONSUMPTION_THRESHOLD and self.bat_discharge_power == 0 and self.pv_power == 0:
+            home_load_text_colour = FONT_VALUE_RED_COLOUR  # red if fully on grid
+        else:
+            home_load_text_colour = FONT_VALUE_AMBER_COLOUR  # amber if partially on grid
+        
         draw.text((mid_x // 2, 13), "Home", font=title_font, fill=FONT_TITLE_COLOUR, anchor="mt")
 
         if self.loads_power < 1: 
-            draw.text((mid_x // 2, 65), f"{self.loads_power*1000:.0f}w", font=number_font, fill=value_font_colour, anchor="mt")
+            draw.text((mid_x // 2, 65), f"{self.loads_power*1000:.0f}w", font=number_font, fill=home_load_text_colour, anchor="mt")
         else:
-            draw.text((mid_x // 2, 65), f"{self.loads_power:.2f}kw", font=number_font, fill=value_font_colour, anchor="mt")
+            draw.text((mid_x // 2, 65), f"{self.loads_power:.2f}kw", font=number_font, fill=home_load_text_colour, anchor="mt")
 
+        ######################################################
         # upper right quadrant show solar power 
+        ######################################################        
+        if self.pv_power == 0: # red if no solar power is coming in
+            solar_text_colour = FONT_VALUE_RED_COLOUR
+        elif self.bat_discharge_power > 0 or self.grid_consumption_power > GRID_CONSUMPTION_THRESHOLD:  # amber if some power is coming from solar but not all
+            solar_text_colour = FONT_VALUE_AMBER_COLOUR
+        else:
+            solar_text_colour = FONT_VALUE_GREEN_COLOUR  # green if all power is coming from solar
+
         draw.text((mid_x + mid_x // 2, 13), "Solar", font=title_font, fill=FONT_TITLE_COLOUR, anchor="mt")
 
         if self.pv_power < 1:
-            draw.text((mid_x + mid_x // 2, 65), f"{self.pv_power*1000:.0f}w", font=number_font, fill=value_font_colour, anchor="mt")
+            draw.text((mid_x + mid_x // 2, 65), f"{self.pv_power*1000:.0f}w", font=number_font, fill=solar_text_colour, anchor="mt")
         else:
-            draw.text((mid_x + mid_x // 2, 65), f"{self.pv_power:.2f}kw", font=number_font, fill=value_font_colour, anchor="mt")
+            draw.text((mid_x + mid_x // 2, 65), f"{self.pv_power:.2f}kw", font=number_font, fill=solar_text_colour, anchor="mt")
 
+        ######################################################
         # lower left quadrant show grid import or export power
+        ######################################################  
+        
+        if self.feedin_power > 0:
+            grid_text_colour = FONT_VALUE_BLUE_COLOUR  # blue if exporting to grid
+        elif self.grid_consumption_power < GRID_CONSUMPTION_THRESHOLD:
+            grid_text_colour = FONT_VALUE_GREEN_COLOUR  # green if using no grid
+        elif self.grid_consumption_power > GRID_CONSUMPTION_THRESHOLD and self.bat_discharge_power == 0 and self.pv_power == 0:
+            grid_text_colour = FONT_VALUE_RED_COLOUR  # red if fully on grid
+        else:
+            grid_text_colour = FONT_VALUE_AMBER_COLOUR  # amber if partially on grid
+
         draw.text((mid_x // 2, DisplayHATMini.HEIGHT - 95), "Grid", font=title_font, fill=FONT_TITLE_COLOUR, anchor="mt")
     
         if self.grid_consumption_power < 1:
-            draw.text((mid_x // 2, DisplayHATMini.HEIGHT - 50), f"{self.grid_consumption_power*1000:.0f}w", font=number_font, fill=value_font_colour, anchor="mt")
+            draw.text((mid_x // 2, DisplayHATMini.HEIGHT - 50), f"{self.grid_consumption_power*1000:.0f}w", font=number_font, fill=grid_text_colour, anchor="mt")
         else:
-            draw.text((mid_x // 2, DisplayHATMini.HEIGHT - 50), f"{self.grid_consumption_power:.2f}kw", font=number_font, fill=value_font_colour, anchor="mt")
+            draw.text((mid_x // 2, DisplayHATMini.HEIGHT - 50), f"{self.grid_consumption_power:.2f}kw", font=number_font, fill=grid_text_colour, anchor="mt")
         
+        
+        ######################################################
         # lower right quadrant show battery state of charge and charging/discharging status
+        ######################################################
+
+        if (self.bat_charge_power == 0 and self.bat_discharge_power == 0):
+            battery_text_colour = FONT_VALUE_RED_COLOUR # red if battery is idle
+        elif (self.bat_discharge_power > 0):
+            battery_text_colour = FONT_VALUE_AMBER_COLOUR # amber if battery is discharging
+        else:
+            battery_text_colour = FONT_VALUE_GREEN_COLOUR # green if battery is charging
+
         draw.text((mid_x + mid_x // 2, DisplayHATMini.HEIGHT - 95), "Battery", font=title_font, fill=FONT_TITLE_COLOUR , anchor="mt")
-        draw.text((mid_x + mid_x // 2, DisplayHATMini.HEIGHT - 50), f"{self.soc:.0f}%", font=number_font, fill=value_font_colour, anchor="mt")
+        draw.text((mid_x + mid_x // 2, DisplayHATMini.HEIGHT - 50), f"{self.soc:.0f}%", font=number_font, fill=battery_text_colour, anchor="mt")
 
         # Send to display
         self.display.display(image)
