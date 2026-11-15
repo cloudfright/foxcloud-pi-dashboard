@@ -13,6 +13,8 @@ FONT_VALUE_AMBER_COLOUR = "#FFBF00"
 BACKGROUND_GRID_COLOUR = "#333333"
 GRID_CONSUMPTION_THRESHOLD = 0.2 # threshold in kW where grid consumption is considered significant
 GRID_EXPORT_THRESHOLD = 0.2 # threshold in kW where grid export is considered significant
+BAT_DISCHARGE_THRESHOLD = 0.1 # threshold in kW where battery discharging is considered significant
+BAT_CHARGE_THRESHOLD = 0.1 # threshold in kW where battery charging is considered significant
 SOLAR_THRESHOLD = 0.7 # threshold in kW where solar generation is considered significant
 
 # use low values to reduce brightness of the LED 
@@ -104,9 +106,9 @@ class Dashboard:
         # | Discharging |    A   | 
         # | Exhausted   |    R   |
 
-        if self.bat_charge_power > 0:
+        if self.bat_charge_power > BAT_CHARGE_THRESHOLD:
             return FONT_VALUE_GREEN_COLOUR  
-        if self.bat_discharge_power > 0:
+        if self.bat_discharge_power > BAT_DISCHARGE_THRESHOLD:
             return FONT_VALUE_AMBER_COLOUR  
 
         return FONT_VALUE_RED_COLOUR 

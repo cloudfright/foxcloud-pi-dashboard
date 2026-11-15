@@ -73,9 +73,13 @@ def test_solar_text_colour(dashboard, pv_power, expected):
     ("bat_charge_power", "bat_discharge_power", "expected"),
     [
         (0, 0, "#FF0000"),
-        (0, 0.1, "#FFBF00"),
-        (0.1, 0, "#00FF00"),
-        (0.1, 0.1, "#00FF00"),
+        (0.036, 0, "#FF0000"),
+        (0, 0.036, "#FF0000"),
+        (0.1, 0, "#FF0000"),
+        (0, 0.1, "#FF0000"),
+        (0.101, 0, "#00FF00"),
+        (0, 0.101, "#FFBF00"),
+        (0.101, 0.101, "#00FF00"),
     ],
 )
 def test_battery_text_colour(dashboard, bat_charge_power, bat_discharge_power, expected):
