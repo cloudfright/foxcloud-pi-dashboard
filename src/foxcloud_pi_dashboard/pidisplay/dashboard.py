@@ -13,8 +13,6 @@ FONT_VALUE_AMBER_COLOUR = "#FFBF00"
 BACKGROUND_GRID_COLOUR = "#333333"
 GRID_CONSUMPTION_THRESHOLD = 0.2 # threshold in kW where grid consumption is considered significant
 GRID_EXPORT_THRESHOLD = 0.2 # threshold in kW where grid export is considered significant
-BAT_DISCHARGE_THRESHOLD = 0.1 # threshold in kW where battery discharging is considered significant
-BAT_CHARGE_THRESHOLD = 0.1 # threshold in kW where battery charging is considered significant
 SOLAR_THRESHOLD = 0.7 # threshold in kW where solar generation is considered significant
 
 # use low values to reduce brightness of the LED 
@@ -39,7 +37,11 @@ class Dashboard:
         self.loads_power = 0
 
     def _get_self_use_percent(self):
-        return ((self.pv_power + self.bat_discharge_power - self.feedin_power) / self.loads_power) * 100
+
+        supply = self.pv_power + self.bat_discharge_power - self.feedin_power - self.bat_charge_power
+        demand = self.loads_power
+        print(f"Supply: {supply}, Demand: {demand}")
+        return (supply / demand) * 100
 
     def _get_home_load_text_colour(self):
 
@@ -66,7 +68,7 @@ class Dashboard:
         # | Full import    |    R   |
         # | Partial import |    A   |
     
-        if self.feedin_power > 0:
+        if self.feedin_power > GRID_EXPORT_THRESHOLD:
             return FONT_VALUE_BLUE_COLOUR  
         
         if self.grid_consumption_power < GRID_CONSUMPTION_THRESHOLD:
@@ -102,9 +104,9 @@ class Dashboard:
         # | Discharging |    A   | 
         # | Exhausted   |    R   |
 
-        if self.bat_charge_power > BAT_CHARGE_THRESHOLD:
+        if self.bat_charge_power > 0:
             return FONT_VALUE_GREEN_COLOUR  
-        if self.bat_discharge_power > BAT_DISCHARGE_THRESHOLD:
+        if self.bat_discharge_power > 0:
             return FONT_VALUE_AMBER_COLOUR  
 
         return FONT_VALUE_RED_COLOUR 
