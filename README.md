@@ -62,4 +62,38 @@ To access Foxcloud data, you need to create an API key:
    uv run foxcloud-pi-dashboard
    ```
 
+## Setting up a service that will run the dashboard on startup
 
+```bash
+sudo nano /etc/systemd/system/foxcloud-pi-dashboard.service
+```
+
+# Add the following content to the file:
+
+```ini
+[Unit]
+Description=Foxcloud Pi Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=insert_username_here
+WorkingDirectory=/home/insert_username_here/dev/foxcloud-pi-dashboard
+Environment="PATH=/home/insert_username_here/.local/bin:/usr/local/bin:/usr/bin"
+ExecStart=/home/insert_username_here/dev/foxcloud-pi-dashboard/.venv/bin/foxcloud-pi-dashboard
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+Then some setup
+
+```bash
+sudo chmod 755 /etc/systemd/system/foxcloud-pi-dashboard.service
+sudo chown root:root foxcloud-pi-dashboard.service
+
+sudo systemctl daemon-reload
+sudo systemctl enable foxcloud-pi-dashboard.service
+sudo systemctl start foxcloud-pi-dashboard.service
+```
