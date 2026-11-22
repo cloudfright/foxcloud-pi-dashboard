@@ -15,6 +15,9 @@ dependencies = [
     "requests>=2.34.2",
 ]
 
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
 [project.scripts]
 foxcloud-pi-dashboard = "foxcloud_pi_dashboard.__main__:main"
 
